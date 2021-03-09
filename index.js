@@ -30,11 +30,65 @@ function processCommand(command) {
         case 'user':
             userCommand(command);
             break;
+        case 'sort':
+            sortCommand(command);
+            break;
         default:
             console.log('wrong command');
             getComments();
             break;
     }
+}
+
+function sortCommand(command) {
+    let mode = getModeFromCommand(command);
+    let comments = getComments();
+    switch (mode) {
+        case 'importance':
+            comments.sort((a, b) => (a.importance > b.importance) ? -1 : 1);
+            break;
+        case 'user':
+            comments.sort(((a, b) =>{
+                if (a.userName === undefined)
+                    return 1;
+
+                if (b.userName === undefined)
+                    return -1;
+
+                if (a.userName === b.userName)
+                    return 0;
+
+                return a.userName > b.userName ? 1 : -1;
+            }));
+            break;
+        case 'date':
+            comments.sort((a, b) => {
+                if (a.date === undefined) {
+                    return 1;
+                }
+                if (b.date === undefined) {
+                    return -1;
+                }
+
+                return a.date > b.date ? -1: 1;
+            });
+            break;
+        default:
+            console.log("Incorrect sort command!");
+            break;
+    }
+
+    for (let comment of comments) {
+        console.log(convertComment(comment));
+    }
+}
+
+function getModeFromCommand(command) {
+    let args = command.split(' ');
+    if (args.length !== 2) {
+        return undefined;
+    }
+    return args[1];
 }
 
 function userCommand(command) {
@@ -79,7 +133,7 @@ function convertComment(comment) {
     }
 
     let day = comment.date.getDate();
-    let month = comment.date.getMonth();
+    let month = comment.date.getMonth() + 1;
     let year = comment.date.getFullYear();
 
     return `(${day}-${month}-${year}) ${comment.userName}: ${comment.text}`;
@@ -184,3 +238,5 @@ function getComment(line){
 
 
 // TODO you can do it!
+// TODO PE; 2020-12-11; Что это???
+// TODO Veronika; 2020-12-10; Тут бы поправить!!

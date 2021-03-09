@@ -3,6 +3,8 @@ const {readLine} = require('./console');
 
 const files = getFiles();
 
+const commentStart = '// TODO ';
+
 console.log('Please, write your command!');
 readLine(processCommand);
 
@@ -13,7 +15,9 @@ function getFiles() {
 }
 
 function processCommand(command) {
-    switch (command) {
+    let formattedCommand = command.split(' ')[0];
+
+    switch (formattedCommand) {
         case 'exit':
             process.exit(0);
             break;
@@ -23,11 +27,44 @@ function processCommand(command) {
         case 'important':
             importantCommand();
             break;
+        case 'user':
+            userCommand(command);
+            break;
         default:
             console.log('wrong command');
             getComments();
             break;
     }
+}
+
+function userCommand(command) {
+    let userName = getUserNameFromCommand(command);
+    let comments = getComments();
+
+    for (let comment of comments) {
+        let commentUserName = getUserNameFromComment(comment);
+        if (commentUserName !== undefined && userName === commentUserName) {
+            console.log(comment);
+        }
+    }
+}
+
+function getUserNameFromComment(comment) {
+    let startIndex = commentStart.length;
+    let endIndex = comment.indexOf(';', startIndex);
+    if (endIndex === -1){
+        return undefined;
+    }
+    return comment.substring(startIndex, endIndex);
+}
+
+function getUserNameFromCommand(command) {
+    let commandStart = "user ";
+    if (!command.startsWith("user ")) {
+        return undefined;
+    }
+
+    return command.substr(commandStart.length);
 }
 
 function importantCommand() {
@@ -64,7 +101,6 @@ function getComments() {
 }
 
 function getComment(line){
-    let commentStart = '// TODO ';
     let commentLength = commentStart.length;
     let commentIndex = 0;
     let isComparing = false;

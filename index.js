@@ -75,7 +75,7 @@ function sortOptions(files, orderBy) {
                 let count = bSplit.length - aSplit.length;
                 if (count !== 0)
                     return count;
-                return new Date(aSplit[1]) > new Date(bSplit[1]) ? -1 : 1; // в идеале ноль придусмотреть, но говнокод
+                return new Date(aSplit[1]) > new Date(bSplit[1]) ? -1 : 1;
             });
         }
     };
@@ -95,15 +95,22 @@ function data(files, dateTime) {
 }
 
 function getWithNewFormat(array, maxName = 10, maxData = 10, maxInstruction = 50) {
-    // Спорный метод
     let params = findMaxLengthParams(array);
     maxName = params[0] < maxName ? params[0] : maxName;
     maxData = params[1] < maxData ? params[1] : maxData;
     maxInstruction = params[2] < maxInstruction ? params[2] : maxInstruction;
     const dividingLine = "_".repeat(maxName + maxData + maxInstruction + 16);
-    const firstSecondRow = [`!  |  ${"user".padEnd(maxName)}  |  ${"data".padEnd(maxData)}  |  ${"comment".padEnd(maxInstruction)}`,
-        dividingLine];
-    let result = firstSecondRow.concat(array.map(line => {
+    const firstSecondRow = [
+        `!  |  ${"user".padEnd(maxName)}  |  ${"data".padEnd(maxData)}  |  ${"comment".padEnd(maxInstruction)}`,
+        dividingLine
+    ];
+    let result = firstSecondRow.concat(getCommentsInTabularForm(array, maxName, maxData, maxInstruction));
+    result.push(dividingLine);
+    return result;
+}
+
+function getCommentsInTabularForm(array, maxName, maxData, maxInstruction) {
+    return array.map(line => {
         let res = line.includes("!") ? "!  |  " : "   |  ";
         let split = line.split(";");
         if (split.length === 3) {
@@ -115,9 +122,7 @@ function getWithNewFormat(array, maxName = 10, maxData = 10, maxInstruction = 50
         }
 
         return res;
-    }));
-    result.push(dividingLine);
-    return result;
+    });
 }
 
 //Вспомогательные функции

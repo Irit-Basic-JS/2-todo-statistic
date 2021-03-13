@@ -17,13 +17,13 @@ function processCommand(command) {
         case 'exit':
             process.exit(0);
         case 'show':
-            console.log(readTodos());
+            console.log(parseTodos());
             break;
         case 'important':
             console.log(readImportant());
             break;
         case 'user':
-            console.log(getByUser(commands[1]));
+            console.log(getByUser(commands.slice(1).join(' ')));
             break;
         case 'sort':
             console.log(getSorted(commands[1]));
@@ -42,7 +42,7 @@ function readTodos() {
     .map(s => s.split('// TODO ')[1]);
 }
 
-function Todo(comment, isFull, user = '', date = '') {
+function Todo(comment, isFull = false, user = null, date = null) {
     this.user = user;
     this.date = date;
     this.comment = comment;
@@ -53,22 +53,23 @@ function parseTodos() {
     let todos = [];
     for (let todo of readTodos()) {
         let parsed = todo.split('; ');
-        if (parsed.length == 1)
-            todos.push(new Todo(parsed[0], parsed.length == 3));
-        else
+        if (parsed.length == 3)
             todos.push(new Todo(parsed[2], parsed.length == 3, parsed[0], parsed[1]))
+                
+        else
+            todos.push(new Todo(parsed[0]));
     }
     return todos;
 }
 
 function readImportant() {
-    return readTodos().filter(x => x.endsWith('!'));
+    return parseTodos().filter(x => x.comment.includes('!'));
 }
 
 function getSorted(criterion) {
     switch (criterion) {
         case 'importance':
-            return readTodos().sort(sortByImportance);
+            return parseTodos().sort(sortByImportance);
         case 'user':
             return parseTodos().sort(sortByUser);
         case 'date':
@@ -77,10 +78,7 @@ function getSorted(criterion) {
 }
 
 function sortByImportance(first, second) {
-    if (second.split('!').length < first.split('!').length)
-        return -1;
-    else
-        return 1;
+    return second.comment.split('!').length < first.comment.split('!').length ? -1 : 1;
 }
 
 function sortByUser(first, second) {
@@ -96,8 +94,8 @@ function sortByDate(first, second) {
 }
 
 function getByUser(user) {
-    return readTodos()
-    .filter(x => x.toLowerCase().includes(user))
+    return parseTodos()
+    .filter(x => x.isFull && x.user.toLowerCase() === user.toLowerCase())
 }
 
 // TODO you can do it!

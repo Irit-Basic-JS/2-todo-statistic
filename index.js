@@ -27,6 +27,7 @@ function processCommand(command) {
             break;
         case 'sort':
             console.log(getSorted(commands[1]));
+            break;
         default:
             console.log('wrong command');
             break;
@@ -41,6 +42,25 @@ function readTodos() {
     .map(s => s.split('// TODO ')[1]);
 }
 
+function Todo(comment, isFull, user = '', date = '') {
+    this.user = user;
+    this.date = date;
+    this.comment = comment;
+    this.isFull = isFull;
+}
+
+function parseTodos() {
+    let todos = [];
+    for (let todo of readTodos()) {
+        let parsed = todo.split('; ');
+        if (parsed.length == 1)
+            todos.push(new Todo(parsed[0], parsed.length == 3));
+        else
+            todos.push(new Todo(parsed[2], parsed.length == 3, parsed[0], parsed[1]))
+    }
+    return todos;
+}
+
 function readImportant() {
     return readTodos().filter(x => x.endsWith('!'));
 }
@@ -50,49 +70,29 @@ function getSorted(criterion) {
         case 'importance':
             return readTodos().sort(sortByImportance);
         case 'user':
-            return readTodos().sort(sortByUser);
+            return parseTodos().sort(sortByUser);
         case 'date':
-            return readTodos().sort(sortByDate);
+            return parseTodos().sort(sortByDate);
     }
 }
 
-function sortByImportance(second, first) {
-    if (first.split('!').length < second.split('!').length)
+function sortByImportance(first, second) {
+    if (second.split('!').length < first.split('!').length)
         return -1;
     else
         return 1;
 }
 
 function sortByUser(first, second) {
-    users = [first.split('; ')[0].toLowerCase(), second.split('; ')[0].toLowerCase()];
-    if (first.split('; ').length === 1)
+    if(!first.isFull)
         return 1;
-    else if (second.split('; ').length === 1)
-        return -1;
-    else {
-        if (users[0] < users[1])
-            return -1;
-        if (users[0] > users[1])
-            return 1;
-        return 0;
-    }
+    return first.user.toLowerCase() < second.user.toLowerCase() ? -1 : 1;
 }
 
 function sortByDate(first, second) {
-    parsed = [first.split('; '), second.split('; ')];
-    if (parsed[0].length === 3) {
-        if (parsed[1] === 3)
-        {
-            if (parsed[0][1] < parsed [1][1])
-                return -1;
-            else 
-                return;
-        }
-        else 
-            return 1;
-    }
-    else
-        return -1;
+    if(!first.isFull)
+        return 1;
+    return first.date > second.date ? -1 : 1;
 }
 
 function getByUser(user) {

@@ -3,6 +3,7 @@ const {readLine} = require('./console');
 
 const startOfComment = "// TODO ";
 const files = getFiles();
+console.log(files.length);
 const comments = getComments(files);
 console.log(comments);
 
@@ -26,15 +27,10 @@ function processCommand(command) {
 }
 
 function getComments(files) {
-	let comments = [];
-	for (const file of files) {
-		let lines = file.split('\r\n');
-		for (let line of lines) {
-			let comment = getComment(line, startOfComment);
-			if (comment) comments.push(comment);
-		}
-	}
-	return comments;
+	return files.map(file => file.split('\r\n')
+		.map(line => getComment(line, startOfComment))
+		.filter(line => line))
+	.flat(1);
 }
 
 function getComment(line, startOfComment) {

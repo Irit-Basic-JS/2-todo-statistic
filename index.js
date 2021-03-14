@@ -3,9 +3,7 @@ const {readLine} = require('./console');
 
 const startOfComment = "// TODO ";
 const files = getFiles();
-console.log(files.length);
 const comments = getComments(files);
-console.log(comments);
 
 console.log('Please, write your command!');
 readLine(processCommand);
@@ -19,6 +17,9 @@ function processCommand(command) {
 	switch (command) {
 		case 'exit':
 			process.exit(0);
+			break;
+		case 'show':
+			commands.show(comments);
 			break;
 		default:
 			console.log('wrong command');
@@ -37,6 +38,10 @@ function getComment(line, startOfComment) {
 	let index = line.lastIndexOf(startOfComment);
 	if (~index && !['"', "'", '`'].includes(line[index - 1]))
 		return line.slice(index + startOfComment.length);
+}
+
+const commands = new function () {
+	this.show = (comments) => comments.forEach(comment => console.log(comment));
 }
 
 // TODO you can do it!

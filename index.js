@@ -15,8 +15,8 @@ function getFiles() {
 
 function getComments(files) {
 	return files.map(file => file.split('\r\n')
-	.map(line => getComment(line, startOfComment))
-	.filter(line => line))
+		.map(line => getComment(line, startOfComment))
+		.filter(line => line))
 	.flat(1);
 }
 
@@ -27,26 +27,44 @@ function getComment(line, startOfComment) {
 		let important = (comment.match(/!/gm) || []).length;
 		let split = comment.split(';', 3).map(line => line.trim());
 		return (split.length === 3)
-			? {name: split[0], data: new Date(split[1]), message: split[2], important: important}
-			: {message: comment, important: important};
+			? {name: split[0], data: new Date(split[1]), message: split[2], important: important, comment: comment}
+			: {comment: comment, important: important};
 	}
 }
 
 function processCommand(command) {
+	let result;
 	switch (command) {
 		case 'exit':
 			process.exit(0);
 			break;
 		case 'show':
-			commands.show(comments);
+			result = commands.show(comments);
 			break;
 		case 'important':
-			commands.important(comments);
+			result = commands.important(comments);
 			break;
+		case 'sort importance':
+			result = commands.sortImportance(comments);
+			break;
+		case 'sort user':
+			result = commands.sortUser(comments);
+			break;
+		case 'sort date':
+			result = commands.sortDate(comments);
+			break;
+
 		default:
-			console.log('wrong command');
+			let split = command.split(' ');
+			if (split[0] === 'user')
+				result = commands.user(comments, split[1]);
+			else if (split[0] === 'date')
+				result = command.date(comments, split[1]);
+			else
+				console.log('wrong command');
 			break;
 	}
+	result.forEach(comment => console.log(comment.comment));
 }
 
 const commands = new function () {

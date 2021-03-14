@@ -4,6 +4,7 @@ const {readLine} = require('./console');
 const files = getFiles();
 const maxNameLength = 10;
 const maxDateLength = 10;
+const maxFileNameLength = 20;
 const maxTextLength = 50;
 const whiteSpace = '  ';
 const whiteSpaceEnd = ' ';
@@ -18,7 +19,11 @@ readLine(processCommand);
 
 function getFiles() {
     const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
-    return filePaths.map(path => readFile(path));
+    return filePaths.map(path => {
+        var index = path.lastIndexOf('/');
+        let fileName = path.substr(index + 1);
+        return [readFile(path), fileName];
+    });
 }
 
 function processCommand(command) {
@@ -152,20 +157,23 @@ function printComments(comments, func) {
         userName: 'user',
         date: 'date',
         text: 'comment',
-        importance: 1
+        importance: 1,
+        fileName: 'file name'
     }
+    let maxFile = Math.max.apply(null, comments.map(c => c.fileName.length));
+    let fileNameLength = Math.min(maxFile, maxFileNameLength);
 
-    let headerString = convertComment(header, nameLength, textLength, dateLength);
+    let headerString = convertComment(header, nameLength, textLength, dateLength, fileNameLength);
     let sep = headerSep.repeat(headerString.length);
     console.log(headerString);
     console.log(sep);
 
     for (let comment of comments){
-        console.log(convertComment(comment, nameLength, textLength, dateLength));
+        console.log(convertComment(comment, nameLength, textLength, dateLength, fileNameLength));
     }
 }
 
-function convertComment(comment, nameLength, textLength, dateLength) {
+function convertComment(comment, nameLength, textLength, dateLength, fileNameLength) {
     let importance = comment.importance > 0 ? '!' : ' ';
     let name = comment.userName === undefined
         ? convertString('', nameLength)
@@ -186,9 +194,10 @@ function convertComment(comment, nameLength, textLength, dateLength) {
         dateString = `${year}-${correctDateNumber(month)}-${correctDateNumber(day)}`
     }
     let text = convertString(comment.text, textLength);
+    let fileName = convertString(comment.fileName, fileNameLength);
 
     let separtor = whiteSpace + wallSymbol + whiteSpace;
-    return whiteSpace + importance + separtor + name + separtor + dateString + separtor + text;
+    return whiteSpace + importance + separtor + name + separtor + dateString + separtor + text + separtor + fileName;
 
     function correctDateNumber(number) {
         let addStr = number <= 9 ? '0' : '';
@@ -213,13 +222,15 @@ function convertString(text, length){
 
 function getComments() {
     let commentsList = [];
-    for (let file of files)
+    for (let args of files)
     {
+        let file = args[0];
+        let fileName = args[1];
         let lines = file.split('\r\n');
 
         for (let line of lines){
             let comment = getComment(line);
-            let commentInfo = comment !== undefined ? ParseComment(comment) : undefined;
+            let commentInfo = comment !== undefined ? ParseComment(comment, fileName) : undefined;
             if (comment !== undefined && commentInfo !== undefined) {
                 commentsList.push(commentInfo);
             }
@@ -229,7 +240,7 @@ function getComments() {
     return commentsList;
 }
 
-function ParseComment(comment) {
+function ParseComment(comment, fileName) {
     let commentSections = comment.split(';');
 
     if (commentSections.length === 1) {
@@ -237,7 +248,8 @@ function ParseComment(comment) {
             userName: undefined,
             date: undefined,
             text: comment.substr(commentStart.length),
-            importance: countImportance(commentSections[0])
+            importance: countImportance(commentSections[0]),
+            fileName
         }
     }
 
@@ -253,7 +265,8 @@ function ParseComment(comment) {
         userName,
         date,
         text,
-        importance: countImportance(text)
+        importance: countImportance(text),
+        fileName
     }
 }
 

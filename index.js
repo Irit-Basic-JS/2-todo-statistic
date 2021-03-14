@@ -8,6 +8,7 @@ const maxTextLength = 50;
 const whiteSpace = '  ';
 const whiteSpaceEnd = ' ';
 const wallSymbol = '|';
+const headerSep = '-';
 
 const commentStart = '// TODO ';
 
@@ -147,6 +148,18 @@ function printComments(comments, func) {
     let maxText = Math.max.apply(null, comments.map(c => c.text.length));
     let textLength = Math.min(maxTextLength, maxText)
 
+    let header = {
+        userName: 'user',
+        date: 'date',
+        text: 'comment',
+        importance: 1
+    }
+
+    let headerString = convertComment(header, nameLength, textLength, dateLength);
+    let sep = headerSep.repeat(headerString.length);
+    console.log(headerString);
+    console.log(sep);
+
     for (let comment of comments){
         console.log(convertComment(comment, nameLength, textLength, dateLength));
     }
@@ -159,8 +172,12 @@ function convertComment(comment, nameLength, textLength, dateLength) {
         : convertString(comment.userName, nameLength);
 
     let dateString;
+
     if (comment.date === undefined) {
         dateString = convertString('', dateLength);
+    }
+    else if (typeof comment.date === 'string'){
+        dateString = convertString(comment.date, dateLength);
     }
     else {
         let day = comment.date.getDate();
@@ -188,7 +205,7 @@ function convertString(text, length){
 
         return text + whiteSpaceEnd.repeat(length - text.length);
     }
-    
+
     let end = '...';
 
     return text.substr(0, length - end.length) + end;

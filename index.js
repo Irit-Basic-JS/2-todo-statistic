@@ -21,6 +21,9 @@ function processCommand(command) {
 		case 'show':
 			commands.show(comments);
 			break;
+		case 'important':
+			commands.important(comments);
+			break;
 		default:
 			console.log('wrong command');
 			break;
@@ -29,8 +32,8 @@ function processCommand(command) {
 
 function getComments(files) {
 	return files.map(file => file.split('\r\n')
-		.map(line => getComment(line, startOfComment))
-		.filter(line => line))
+	.map(line => getComment(line, startOfComment))
+	.filter(line => line))
 	.flat(1);
 }
 
@@ -42,6 +45,8 @@ function getComment(line, startOfComment) {
 
 const commands = new function () {
 	this.show = (comments) => comments.forEach(comment => console.log(comment));
+	this.important = (comments) =>
+		this.show(comments.filter(comment => comment.includes("!")));
 }
 
 // TODO you can do it!

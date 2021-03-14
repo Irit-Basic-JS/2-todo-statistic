@@ -2,33 +2,36 @@ const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
 
 const startOfComment = "// TODO ";
-const files = getFiles();
-const comments = getComments(files);
+const filesAndPath = getFilesAndPath();
+const comments = getComments(filesAndPath);
 
 console.log('Please, write your command!');
 readLine(processCommand);
 
-function getFiles() {
+function getFilesAndPath() {
 	const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
-	return filePaths.map(path => readFile(path));
+	return filePaths.map(currentPath => {
+		return {file: readFile(currentPath), path: currentPath}
+	});
 }
 
-function getComments(files) {
-	return files.map(file => file.split('\r\n')
-		.map(line => getComment(line, startOfComment))
+function getComments(filesAndPath) {
+	return filesAndPath.map(fileAndPath => fileAndPath.file.split('\r\n')
+		.map(line => getComment(line, startOfComment, fileAndPath.path))
 		.filter(line => line))
 	.flat(1);
 }
 
-function getComment(line, startOfComment) {
+function getComment(line, startOfComment, path) {
 	let index = line.lastIndexOf(startOfComment);
 	if (~index && !['"', "'", '`'].includes(line[index - 1])) {
 		let comment = line.slice(index + startOfComment.length);
 		let important = (comment.match(/!/gm) || []).length;
 		let split = comment.split(';', 3).map(line => line.trim());
+		let fileName = path.slice(path.lastIndexOf("/") + 1);
 		return (split.length === 3)
-			? {important: important, name: split[0], dateOfCreation: new Date(split[1]), comment: split[2]}
-			: {important: important, comment: comment};
+			? {important, name: split[0], dateOfCreation: new Date(split[1]), comment: split[2], fileName: fileName}
+			: {important, comment, fileName};
 	}
 }
 
@@ -97,22 +100,24 @@ function processCommand(command) {
 }
 
 function tableParser(data) {
-	let nameAndMessageSize = getNameAndCommentSize(data);
-	createSeparatorLine(nameAndMessageSize);
-	createTitle(nameAndMessageSize);
-	createSeparatorLine(nameAndMessageSize);
-	data.forEach(record => console.log(getLine(record, nameAndMessageSize)));
-	createSeparatorLine(nameAndMessageSize);
+	let tableSizes = getTableSizes(data);
+	createSeparatorLine(tableSizes);
+	createTitle(tableSizes);
+	createSeparatorLine(tableSizes);
+	data.forEach(record => console.log(getLine(record, tableSizes)));
+	createSeparatorLine(tableSizes);
 }
 
-function getLine(record, nameAndMessageSize) {
-	let paragraph = '  ';
+function getLine(record, tableSizes) {
+	let paragraph = '  | ';
+	let indentation = '  |';
 	return paragraph + [
 		record.important ? '!' : ' ',
-		getCell(record.name, nameAndMessageSize[0]),
-		getCell(record.dateOfCreation, 10),
-		getCell(record.comment, nameAndMessageSize[1])
-	].join(' | ');
+		getCell(record.name, tableSizes[1]),
+		getCell(record.dateOfCreation, tableSizes[2]),
+		getCell(record.comment, tableSizes[3]),
+		getCell(record.fileName, tableSizes[4])
+	].join(' | ') + indentation;
 }
 
 function getCell(property, maxLength) {
@@ -123,31 +128,33 @@ function getCell(property, maxLength) {
 	return property.padEnd(maxLength);
 }
 
-function getNameAndCommentSize(data) {
-	let columnSize = [0, 10];
+function getTableSizes(data) {
+	let columnSize = [1, 9, 10, 7, 4];
 	for (const record of data) {
-		if (record.name && record.name.length > columnSize[0])
-			columnSize[0] = record.name.length;
-		if (record.comment && record.comment.length > columnSize[1])
-			columnSize[1] = record.comment.length;
+		if (record.name && record.name.length > columnSize[1])
+			columnSize[1] = record.name.length;
+		if (record.comment && record.comment.length > columnSize[3])
+			columnSize[3] = record.comment.length;
+		if (record.fileName && record.fileName.length > columnSize[4])
+			columnSize[4] = record.fileName.length;
 	}
-	if (columnSize[0] > 10) columnSize[0] = 10;
-	if (columnSize[0] < 4) columnSize[0] = 4;
-	if (columnSize[1] > 50) columnSize[1] = 50;
-	if (columnSize[1] < 7) columnSize[1] = 7;
+	if (columnSize[1] > 10) columnSize[1] = 10;
+	if (columnSize[3] > 50) columnSize[3] = 50;
+	if (columnSize[4] > 20) columnSize[4] = 20;
 
 	return columnSize;
 }
 
-function createTitle(nameAndMessageSize) {
+function createTitle(tableSizes) {
 	console.log(getLine(
-		{important: 1, name: 'name', dateOfCreation: 'date', comment: 'comment'},
-		nameAndMessageSize));
+		{important: 1, name: 'name', dateOfCreation: 'date', comment: 'comment', fileName: 'file name'},
+		tableSizes));
 }
 
-function createSeparatorLine(nameAndMessageSize) {
-	let count = nameAndMessageSize[0] + nameAndMessageSize[1] + 10 + 3 + 3 * 3;
-	console.log('-'.repeat(count));
+function createSeparatorLine(tableSizes) {
+	let paragraph = '  ';
+	let count = tableSizes.reduce((sum, current) => sum + current, 0) + 3 * 4 + 5;
+	console.log(paragraph + '-'.repeat(count));
 }
 
 // TODO you can do it!

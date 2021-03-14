@@ -2,6 +2,11 @@ const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
 
 const files = getFiles();
+const nameLength = 10;
+const dateLength = 10;
+const textLength = 50;
+const whiteSpace = '  ';
+const wallSymbol = '|';
 
 const commentStart = '// TODO ';
 
@@ -47,9 +52,8 @@ function dateCommand(command){
     let args = command.split(' ');
     let date = Date.parse(args[1]);
     let comments = getComments().filter(value => value.date > date);
-    for (let comment of comments) {
-        console.log(convertComment(comment));
-    }
+
+    printComments(comments, c => true);
 }
 
 function sortCommand(command) {
@@ -90,9 +94,7 @@ function sortCommand(command) {
             break;
     }
 
-    for (let comment of comments) {
-        console.log(convertComment(comment));
-    }
+    printComments(comments, c => true);
 }
 
 function getModeFromCommand(command) {
@@ -107,11 +109,10 @@ function userCommand(command) {
     let userName = getUserNameFromCommand(command);
     let comments = getComments();
 
-    for (let comment of comments) {
-        if (userName !== undefined && userName === comment.userName) {
-            console.log(convertComment(comment));
-        }
-    }
+    if (userName === undefined)
+        return;
+
+    printComments(comments, c => userName === c.userName);
 }
 
 function getUserNameFromCommand(command) {
@@ -125,30 +126,60 @@ function getUserNameFromCommand(command) {
 
 function importantCommand() {
     let commentsList = getComments();
-    for (let comment of commentsList){
-        if (comment.importance > 0) {
-            console.log(convertComment(comment));
-        }
-    }
+    printComments(commentsList, c => c.importance > 0);
 }
 
 function showCommand() {
     let commentsList = getComments();
-    for (let comment of commentsList){
-        console.log(convertComment(comment));
+    printComments(commentsList, c => true);
+}
+
+function printComments(comments, func) {
+    for (let comment of comments){
+        if (func(comment))
+            console.log(convertComment(comment));
     }
 }
 
 function convertComment(comment) {
-    if (comment.date === undefined || comment.userName === undefined){
-        return `Anonym: ${comment.text}`;
+    let importance = comment.importance > 0 ? '!' : ' ';
+    let name = comment.userName === undefined
+        ? convertString('', nameLength)
+        : convertString(comment.userName, nameLength);
+
+    let dateString;
+    if (comment.date === undefined) {
+        dateString = convertString('', dateLength);
+    }
+    else {
+        let day = comment.date.getDate();
+        let month = comment.date.getMonth() + 1;
+        let year = comment.date.getFullYear();
+        dateString = `${year}-${correctDateNumber(month)}-${correctDateNumber(day)}`
+    }
+    let text = convertString(comment.text, textLength);
+
+    let separtor = whiteSpace + wallSymbol + whiteSpace;
+    return whiteSpace + importance + separtor + name + separtor + dateString + separtor + text;
+
+    function correctDateNumber(number) {
+        let addStr = number <= 9 ? '0' : '';
+        return addStr + number;
+    }
+}
+
+function convertString(text, length){
+    if (text === undefined) {
+        return new Array(length).join(' ');
     }
 
-    let day = comment.date.getDate();
-    let month = comment.date.getMonth() + 1;
-    let year = comment.date.getFullYear();
+    if (text.length <= length) {
 
-    return `(${year}-${month}-${day}) ${comment.userName}: ${comment.text}`;
+        return text + new Array(length - text.length + 1).join(' ');
+    }
+    let end = '...';
+
+    return text.substr(0, length - end.length) + end;
 }
 
 function getComments() {
@@ -176,7 +207,7 @@ function ParseComment(comment) {
         return {
             userName: undefined,
             date: undefined,
-            text: commentSections[0],
+            text: comment.substr(commentStart.length),
             importance: countImportance(commentSections[0])
         }
     }
@@ -187,7 +218,7 @@ function ParseComment(comment) {
 
     let userName = commentSections[0].substr(commentStart.length);
     let date = new Date(Date.parse(commentSections[1]));
-    let text = commentSections[2];
+    let text = commentSections[2].trim();
 
     return {
         userName,

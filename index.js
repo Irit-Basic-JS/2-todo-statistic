@@ -27,8 +27,8 @@ function getComment(line, startOfComment) {
 		let important = (comment.match(/!/gm) || []).length;
 		let split = comment.split(';', 3).map(line => line.trim());
 		return (split.length === 3)
-			? {name: split[0], date: new Date(split[1]), message: split[2], comment: comment, important: important}
-			: {comment: comment, important: important};
+			? {name: split[0], data: new Date(split[1]), message: split[2], important: important}
+			: {message: comment, important: important};
 	}
 }
 
@@ -57,19 +57,21 @@ const commands = new function () {
 	this.user = (comments, userName) =>
 		comments.filter(comment => comment.name && comment.name.toLowerCase() === userName.toLowerCase());
 
+	this.date = (comments, date) => comments.filter(comment => comment.data && comment.data - new Date(date) >= 0);
+
 	this.sortImportance = comments => comments.sort((a, b) => b.important - a.important);
 
 	this.sortUser = function (comments) {
 		let commentsWithName = comments.filter(comment => comment.name)
-			.sort((a, b) => (a.name.toLowerCase().localeCompare(b.name.toLowerCase())));
+		.sort((a, b) => (a.name.toLowerCase().localeCompare(b.name.toLowerCase())));
 		let commentsWithoutName = comments.filter(comment => !comment.name);
 		return commentsWithName.concat(commentsWithoutName);
 	}
 
 	this.sortDate = function (comments) {
-		let commentsWithDate = comments.filter(comment => comment.date)
-			.sort((a, b) => (b.date - a.date));
-		let commentsWithoutDate = comments.filter(comment => !comment.date);
+		let commentsWithDate = comments.filter(comment => comment.data)
+		.sort((a, b) => (b.data - a.data));
+		let commentsWithoutDate = comments.filter(comment => !comment.data);
 		return commentsWithDate.concat(commentsWithoutDate);
 	}
 }

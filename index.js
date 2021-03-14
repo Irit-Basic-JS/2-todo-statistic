@@ -34,13 +34,18 @@ function processCommand(command) {
             switch (split[1]){
                 case 'importance':
                     console.log(sortImportance());
+                    break;
                 case 'user':
                     console.log(sortUser());
+                    break;
                 case 'data':
                     console.log(sortData());
-
+                    break;
             }
-
+            break;
+        case 'date':
+            console.log(date(split[1]));
+            break;
         default:
             console.log('wrong command');
             break;
@@ -77,13 +82,23 @@ function sortImportance() {
 
 function sortUser() {
     return show().sort((a, b) => {
-        let difference = b.split(';').length - a.split(';').length;
-        if (difference !== 0) {
-            return difference;
-            return a.split(';')[0].localeCompare(b.split(';'));
+        let aUser = a.toLowerCase().split(';');
+        let bUser = b.toLowerCase().split(';');
+        if (aUser.length !== 1) {
+            if (aUser > bUser)
+                return 1;
+            if (aUser < bUser)
+                return -1;
+            return 0;
         }
-    })
-}function sortData() {
+        else if (bUser.length === 1) {
+            return -1;
+        }
+        return 0;
+    });
+}
+
+function sortData() {
     return show().sort((a, b) => {
         let aData = a.split('; ');
         let bData = b.split('; ');
@@ -100,12 +115,20 @@ function sortUser() {
         return 1;
 })}
 
+function date(data){
+    return show().filter(a => {
+           let splinDate = a.split('; ')
+        if(splinDate.length === 3)
+            return splinDate[1] > data;
+        return false;
+        });
+}
+
 //comans =
 //{exit: () => process.exit(0),
 //  show,
 //important,
 //}
-//ODO you can do it!
 /*function processCommand(comans) {
     let [instruction, ...args] = command.split(" ");
     if (commands[instruction])
@@ -116,3 +139,5 @@ function sortUser() {
 
 
 
+// TODO you can do it!
+// TODO you can do it?

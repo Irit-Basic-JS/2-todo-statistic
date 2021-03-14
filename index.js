@@ -2,10 +2,11 @@ const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
 
 const files = getFiles();
-const nameLength = 10;
-const dateLength = 10;
-const textLength = 50;
+const maxNameLength = 10;
+const maxDateLength = 10;
+const maxTextLength = 50;
 const whiteSpace = '  ';
+const whiteSpaceEnd = ' ';
 const wallSymbol = '|';
 
 const commentStart = '// TODO ';
@@ -106,13 +107,13 @@ function getModeFromCommand(command) {
 }
 
 function userCommand(command) {
-    let userName = getUserNameFromCommand(command);
+    let userName = getUserNameFromCommand(command).toLowerCase();
     let comments = getComments();
 
     if (userName === undefined)
         return;
 
-    printComments(comments, c => userName === c.userName);
+    printComments(comments, c => c.userName !== undefined &&  userName === c.userName.toLowerCase());
 }
 
 function getUserNameFromCommand(command) {
@@ -135,13 +136,23 @@ function showCommand() {
 }
 
 function printComments(comments, func) {
+    comments = comments.filter(func);
+
+    let maxUserName = Math.max.apply(null, comments.map(c => c.userName === undefined ? 0 : c.userName.length));
+    let nameLength = Math.min(maxNameLength, maxUserName);
+
+    let maxDate = comments.some(c => c.date !== undefined) ? maxDateLength : 0;
+    let dateLength = Math.min(maxDate, maxDateLength);
+
+    let maxText = Math.max.apply(null, comments.map(c => c.text.length));
+    let textLength = Math.min(maxTextLength, maxText)
+
     for (let comment of comments){
-        if (func(comment))
-            console.log(convertComment(comment));
+        console.log(convertComment(comment, nameLength, textLength, dateLength));
     }
 }
 
-function convertComment(comment) {
+function convertComment(comment, nameLength, textLength, dateLength) {
     let importance = comment.importance > 0 ? '!' : ' ';
     let name = comment.userName === undefined
         ? convertString('', nameLength)
@@ -170,13 +181,14 @@ function convertComment(comment) {
 
 function convertString(text, length){
     if (text === undefined) {
-        return new Array(length).join(' ');
+        return whiteSpaceEnd.repeat(length);
     }
 
     if (text.length <= length) {
 
-        return text + new Array(length - text.length + 1).join(' ');
+        return text + whiteSpaceEnd.repeat(length - text.length);
     }
+    
     let end = '...';
 
     return text.substr(0, length - end.length) + end;

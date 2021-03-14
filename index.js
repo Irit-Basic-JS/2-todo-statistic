@@ -33,10 +33,22 @@ function processCommand(command) {
         case 'sort':
             sortCommand(command);
             break;
+        case 'date':
+            dateCommand(command);
+            break;
         default:
             console.log('wrong command');
             getComments();
             break;
+    }
+}
+
+function dateCommand(command){
+    let args = command.split(' ');
+    let date = Date.parse(args[1]);
+    let comments = getComments().filter(value => value.date > date);
+    for (let comment of comments) {
+        console.log(convertComment(comment));
     }
 }
 
@@ -136,7 +148,7 @@ function convertComment(comment) {
     let month = comment.date.getMonth() + 1;
     let year = comment.date.getFullYear();
 
-    return `(${day}-${month}-${year}) ${comment.userName}: ${comment.text}`;
+    return `(${year}-${month}-${day}) ${comment.userName}: ${comment.text}`;
 }
 
 function getComments() {

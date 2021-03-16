@@ -50,16 +50,9 @@ function Todo(comment, isFull = false, user = null, date = null) {
 }
 
 function parseTodos() {
-    let todos = [];
-    for (let todo of readTodos()) {
-        let parsed = todo.split('; ');
-        if (parsed.length == 3)
-            todos.push(new Todo(parsed[2], parsed.length == 3, parsed[0], parsed[1]))
-                
-        else
-            todos.push(new Todo(parsed[0]));
-    }
-    return todos;
+    return readTodos()
+    .map(x => x.split('; '))
+    .map(x => x.length == 3 ? new Todo(x[2], x.length == 3, x[0], x[1]) : new Todo(x[0]))
 }
 
 function readImportant() {
@@ -82,15 +75,11 @@ function sortByImportance(first, second) {
 }
 
 function sortByUser(first, second) {
-    if(!first.isFull)
-        return 1;
-    return first.user.toLowerCase() < second.user.toLowerCase() ? -1 : 1;
+    return !first.isFull ? 1 :first.user.toLowerCase() < second.user.toLowerCase() ? -1 : 1;
 }
 
 function sortByDate(first, second) {
-    if(!first.isFull)
-        return 1;
-    return first.date > second.date ? -1 : 1;
+    return !first.isFull ? 1 : first.date > second.date ? -1 : 1;
 }
 
 function getByUser(user) {

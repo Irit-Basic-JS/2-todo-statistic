@@ -57,7 +57,7 @@ let important = [];
 
 
 function user(){
-    let user = command;
+    let user = "PE";
     let ss = [];
     let rr = allTodo.map(x => x.split(';'));
     result1 = [];

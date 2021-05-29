@@ -2,16 +2,32 @@ const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
 
 const files = getFiles();
+const fileNames = getFileNames();
 const todos = getTodos();
 
 console.log('Please, write your command!');
 // readLine(processCommand); Idk how to use it
-processCommand('sort date');
+processCommand('show');
 
 function getFiles() {
     const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
     return filePaths.map(path => readFile(path));
 }
+
+function getFileNames() {
+    const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
+    let names = [];
+    for (let path of filePaths) {
+        names.push(getFileFromPath(path));
+    }
+    return names;
+}
+
+function getFileFromPath(path) {
+    let pathSplit = path.split("/");
+    return pathSplit[pathSplit.length - 1];
+}
+
 
 function processCommand(command) {
     let commands = command.split(" ");
@@ -180,7 +196,7 @@ function getAfterDate(date){
 
 function getTable(tableData) {
     let allTodoData = [];
-    let rowLength = [4, 4, 7];
+    let rowLength = [4, 4, 7, 30];
 
     for (let todo of tableData){
         let todoData = getTodoData(todo);
@@ -192,13 +208,13 @@ function getTable(tableData) {
 
     rowLength[0] = Math.min(rowLength[0], 10);
     rowLength[1] = Math.min(rowLength[1], 10);
-    rowLength[2] = Math.min(rowLength[2], 50);
+    rowLength[2] = Math.min(rowLength[2], 100);
  
     let separ = "  |  ";
 
     let table = [];
-    let title = "!" + separ + cutField("user", rowLength[0]) + separ 
-    + cutField("date", rowLength[1]) + separ + cutField("comment", rowLength[2]);
+    let title = "!" + separ + cutField("user", rowLength[0]) + separ + cutField("date", rowLength[1]) 
+    + separ + cutField("comment", rowLength[2]) + separ + cutField("file name", rowLength[3]);
     let border = '-'.repeat(title.length);
     table.push(title, border);
 
@@ -207,6 +223,17 @@ function getTable(tableData) {
         fields.push(cutField(todoData[0], rowLength[0]));
         fields.push(cutField(todoData[1], rowLength[1]));
         fields.push(cutField(todoData[2], rowLength[2]));
+        if (todoData[2].length > 0) {
+            for (let i = 0; i < files.length; i++){
+                let strings = files[i].split("\n");
+                for (let str of strings){
+                    if (str.includes(todoData[2])){
+                        todoData[3] = fileNames[i];
+                    }
+                }
+            }
+        }
+        fields.push(cutField(todoData[3], rowLength[3]));
         table.push(fields.join(separ));
     }
 
@@ -220,7 +247,7 @@ function cutField (str, len) {
 }
 
 function getTodoData(todo){
-    let data = ['', '', ''];
+    let data = ['', '', '', ''];
     
     if (todo.includes(';')){
         data[0] = todo.substring(8, todo.indexOf(';'));

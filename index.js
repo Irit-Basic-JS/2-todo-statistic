@@ -1,231 +1,171 @@
 const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
 
-const files = getFiles();
+const comments = getComments(getFiles());
 
 console.log('Please, write your command!');
 readLine(processCommand);
 
 function getFiles() {
-    const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
-    return filePaths.map(path => readFile(path));
-}
-
-function getAllToDo() {
-    let toDoLines = [];
-    let text = getFiles().join();
-    let lines = text.split('\n')
-    for (let line of lines) {
-        if (line.includes('// TODO ') && !line.includes('delete this one from toDoLines'))
-            toDoLines.push(line); // delete this one from toDoLines
-    }
-    let result = toDoLines.map(item => item.slice(item.indexOf('/') + 8));
-    return result;
-}
-
-function getImportant() {
-    let importantComms = [];
-    let allComms = getAllToDo();
-    for (let comm of allComms) {
-        if (comm.includes('!')) {
-            importantComms.push(comm)
-        }
-    }
-    return importantComms;
-}
-
-function howManyTimesIncl(string, symbol, timesNumber) {
-    let strToArr = string.split('');
-    let counter = 0;
-    for (let sym of strToArr) {
-        if (sym === symbol) counter++;
-    }
-    return counter === timesNumber;
-}
-
-function getUnformatted() {
-    let unformattedComms = [];
-    let allComms = getAllToDo();
-    for (let comm of allComms) {
-        if (!isFormatted(comm)) {
-            unformattedComms.push(comm);
-        }
-    }
-    return unformattedComms;
-}
-
-function getFormatted() {
-    let formattedComms = [];
-    let allComms = getAllToDo();
-    for (let comm of allComms) {
-        if (isFormatted(comm)) {
-            formattedComms.push(comm);
-        }
-    }
-    return formattedComms;
-}
-
-function getByUsername(username) {
-    let formattedComms = getFormatted();
-    let userComms = [];
-    username = username.toLowerCase();
-    for (let comment of formattedComms) {
-        if (comment.split(';')[0].trim().toLowerCase() === username) {
-            userComms.push(comment);
-        }
-    }
-    return userComms;
-}
-
-function getSortedByDate() {
-    let comments = getFormatted()
-    let sortedComments = comments.sort(function (a, b) {
-        let aDate = new Date(a.split(';')[1].trim());
-        let bDate = new Date(b.split(';')[1].trim());
-        return (aDate.getFullYear() * 256 + (aDate.getMonth() + 1) * 30 + aDate.getDate()) - (bDate.getFullYear() * 256 + (bDate.getMonth() + 1) * 30 + bDate.getDate());
-    });
-    for (let comment of getUnformatted()) {
-        sortedComments.push(comment);
-    }
-    return sortedComments.reverse();
-}
-
-function getSortedByImportance() {
-    let comms = getAllToDo();
-    let sortedComms = comms.sort(function(a, b) {
-        return a.replace(/[^!]/g, "").length - b.replace(/[^!]/g, "").length;
-    })
-    return sortedComms.reverse();
-}
-
-function getSortedByUsers() {
-    let users = [];
-    let comms = getFormatted();
-    for (let comment of comms) {
-        let user = comment.split(';')[0].trim().toLowerCase();
-        users.push(user);
-    }
-    users = unique(users);
-    let result = [];
-    for (let user of users) {
-        let userComms = getByUsername(user);
-        for (let comm of userComms) {
-            result.push(comm);
-        }
-    }
-    for (let comm of getUnformatted()) {
-        result.push(comm);
-    }
-    return result;
-}
-
-
-function unique(arr) {
-    let result = [];
-    for (let str of arr) {
-        if (!result.includes(str)) {
-            result.push(str);
-        }
-    }
-    return result;
-}
-
-function isFormatted(comment) {
-    return howManyTimesIncl(comment, ';', 2);
-}
-
-function getFilteredByDate(date) {
-    let comms = getFormatted();
-    let filteredComms = comms.filter(comm => {
-        return new Date(comm.split(';')[1].trim()) > date;
-    });
-    return filteredComms;
-}
-
-function clearStrings(...strings) {
-    for (let str of strings) str = '';
-}
-
-function showOnConsole(comments) {
-
-    console.log(`  !  |  ${'user'.padEnd(10, ' ')}  |  ${'date'.padEnd(10, ' ')}  |  comment  `);
-    console.log(`${'-'.repeat(88)}`);
-    let frmtdImportance = '';
-    let frmtdUsername = '';
-    let frmtdDate = '';
-    let frmtdComment = '';
-
-    for (let comment of comments) {
-        if (!isFormatted(comment)) {
-            frmtdUsername = 'Unknown   ';
-            frmtdDate = 'Unknown   ';
-            frmtdImportance = comment.includes('!') ? '!' : ' ';
-            frmtdComment = comment.length <= 50 ? comment.padEnd(50, ' ') : comment.slice(0,47) + '...';
-            console.log(`  ${frmtdImportance}  |  ${frmtdUsername}  |  ${frmtdDate}  |  ${frmtdComment}  `);
-            clearStrings(frmtdImportance, frmtdUsername, frmtdDate, frmtdComment);
-        }
-
-        else {
-            let splittedComment = comment.split(';');
-            frmtdImportance = comment.includes('!') ? '!' : ' ';
-            let username = splittedComment[0].trim().toLowerCase();
-            frmtdUsername = username.length <= 10 ? username.padEnd(10, ' ') : username.slice(0,7) + '...';
-            frmtdDate = splittedComment[1].trim();
-            let onlyComment = splittedComment[2].trim();
-            frmtdComment = onlyComment.length <= 50 ? onlyComment.padEnd(50, ' ') : onlyComment.slice(0,47) + '...';
-            console.log(`  ${frmtdImportance}  |  ${frmtdUsername}  |  ${frmtdDate}  |  ${frmtdComment}  `);
-            clearStrings(frmtdImportance, frmtdUsername, frmtdDate, frmtdComment);
-        }
-    }
-    console.log(`${'-'.repeat(88)}`);
+	const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
+	return filePaths.map(currentPath => {
+		return {file: readFile(currentPath), path: currentPath}
+	});
 }
 
 function processCommand(command) {
-        let splittedCommand = command.split(' ');
-            switch (splittedCommand[0]) {
-                case 'exit':
-                    process.exit(0);
-                    break;
-                case 'show':
-                    showOnConsole(getAllToDo());
-                    break;
-                case 'important':
-                    showOnConsole(getImportant());
-                    break;
-                case 'user':
-                    let username = splittedCommand[1];
-                    showOnConsole(getByUsername(username));
-                    break;
-                case 'sort':
-                    switch (splittedCommand[1]) {
-                        case 'importance':
-                            showOnConsole(getSortedByImportance());
-                            break;
-                        case 'user':
-                            showOnConsole(getSortedByUsers());
-                            break;
-                        case 'date':
-                            showOnConsole(getSortedByDate());
-                            break;
-                        default:
-                            console.log('Command \'sort ...\' supports only these arguments: \'importance\', \'user\', \'date\'');
-                            break;
-                    }
-                    break;
-                case 'date':
-                    showOnConsole(getFilteredByDate(new Date(splittedCommand[1])));
-                    break;
-                case 'debug':
-                    let dates = [];
-                    for (let coment of getFormatted()) {
-                        let date = new Date(coment.split(';')[1].trim());
-                        dates.push(date.getFullYear());
-                    }
-                    console.log(dates);
-                    break;
-                default:
-                    console.log('wrong command');
-                    break;
-            }
+	let processedComments;
+	if (command === 'exit')
+		process.exit(0);
+	else if (command === 'show')
+		processedComments = comments;
+	else if (command === 'important')
+		processedComments = exclamation(comments);
+	else if (command === 'sort importance')
+		processedComments = exclamationSort(comments);
+	else if (command === 'sort user')
+		processedComments = userSort(comments);
+	else if (command === 'sort date')
+		processedComments = dateSort(comments);
+	else {
+		let split = command.split(' ');
+		if (split[0] === 'date')
+			processedComments = date(comments, split[1]);
+		else if (split[0] === 'user')
+			processedComments = user(comments, split[1]);
+		else
+			console.log('wrong command');
+	}
+	if (processedComments !== undefined) show(processedComments);
 }
+
+function getComments(files) {
+	let comments = [];
+	for (let file of files) {
+		for (let line of file.file.split('\r\n')) {
+			let comment = getComment(line, file.path);
+			if (comment) comments.push(comment);
+		}
+	}
+
+	return comments;
+}
+
+function getComment(line, path) {
+	let position = line.lastIndexOf("// TODO ");
+	if (position !== -1 && line[position - 1] !== '"') {
+		let comment = line.slice(position + 8);
+
+		let components = comment.split(';', 3).map(line => line.trim());
+		let exclamation = 0;
+		for (let char of comment) {
+			if (char === '!') exclamation++;
+		}
+
+		let file = path.slice(path.lastIndexOf("/") + 1);
+		if (components.length === 3)
+			return {
+				exclamation: exclamation,
+				name: components[0],
+				date: new Date(components[1]),
+				comment: components[2],
+				file: file
+			};
+		else {
+			return {
+				exclamation: exclamation,
+				comment: comment,
+				file: file
+			};
+		}
+	}
+}
+
+function user(comments, userName) {
+	return comments.filter(comment => comment.name && comment.name.toLowerCase() === userName.toLowerCase());
+}
+
+function exclamation(comments) {
+	return comments.filter(comment => comment.exclamation !== 0);
+}
+
+function date(comments, date) {
+	return comments.filter(comment => comment.date && comment.date - new Date(date) >= 0);
+}
+
+function dateSort(comments) {
+	let noDateComments = comments.filter(comment => !comment.date);
+	let dateComments = comments.filter(comment => comment.date).sort((a, b) => (b.date - a.date));
+	return dateComments.concat(noDateComments);
+}
+
+function userSort(comments) {
+	let noNameComments = comments.filter(comment => !comment.name);
+	let nameComments = comments
+	.filter(comment => comment.name).sort((a, b) => (a.name.toLowerCase().localeCompare(b.name.toLowerCase())));
+	return nameComments.concat(noNameComments);
+}
+
+function exclamationSort(comments) {
+	return comments.sort((a, b) => b.exclamation - a.exclamation);
+}
+
+function show(comments) {
+	let sizes = getSizes(comments);
+	console.log(getTitle(sizes));
+	console.log(getSeparator(sizes));
+	for (let comment of comments) {
+		console.log(getLine(comment, sizes));
+	}
+}
+
+function getSizes(comments) {
+	let sizes = {exclamation: 1, name: 9, date: 10, comment: 7, file: 9};
+	for (let comment of comments) {
+		if (comment.name?.length > sizes.name) sizes.name = comment.name.length;
+		if (comment.comment.length > sizes.comment) sizes.comment = comment.comment.length;
+		if (comment.file.length > sizes.file) sizes.file = comment.file.length;
+	}
+	if (sizes.name > 10) sizes.name = 10;
+	if (sizes.comment > 50) sizes.comment = 50;
+	if (sizes.file > 20) sizes.file = 20;
+	return sizes;
+}
+
+function getLine(comment, sizes) {
+	return [
+		comment.exclamation !== 0 ? '!' : ' ',
+		processValue(comment.name, sizes.name),
+		processValue(comment.date, sizes.date),
+		processValue(comment.comment, sizes.comment),
+		processValue(comment.file, sizes.file)
+	].join(' | ');
+}
+
+function processValue(value, maxSize) {
+	if (!value) return ' '.repeat(maxSize);
+	if (value instanceof Date)
+		return Intl.DateTimeFormat('ru').format(value).replace(/\./g, '-');
+	if (value.length && value.length > maxSize) return value.slice(0, maxSize - 1) + '…';
+	return value.padEnd(maxSize);
+}
+
+function getTitle(sizes) {
+	return getLine({
+		exclamation: '!',
+		name: 'name',
+		date: 'date',
+		comment: 'comment',
+		file: 'file name'
+	}, sizes);
+}
+
+function getSeparator(sizes) {
+	let length = 3 * 4;
+	for (let size of Object.values(sizes)) {
+		length += size;
+	}
+	return '-'.repeat(length);
+}
+
 // TODO you can do it!

@@ -11,7 +11,6 @@ function getFiles() {
     return filePaths.map(path => readFile(path));
 }
 
-
 function processCommand(command) {
     let commands = command.split(' ');
     let todos = getAllTodos();

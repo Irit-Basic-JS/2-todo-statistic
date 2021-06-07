@@ -1,5 +1,5 @@
 const fs = require('fs');
-
+// TODO you can do it!
 // TODO PE; 2018-08-20; переименовать?
 function getAllFilePathsWithExtension(directoryPath, extension, filePaths) {
     filePaths = filePaths || [];

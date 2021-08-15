@@ -205,7 +205,7 @@ function getTab (arr)
     // Заполняем таблицу
     arr.forEach (e =>
     {
-        let s0; // 
+        let s0; // Восклицательный знак
         if (e[0] == 0)
             s0 = ' ';
         else s0 = '!';

@@ -22,4 +22,21 @@ function processCommand(command) {
     }
 }
 
+function toShow() {
+    let lines = [];
+    for (let file of files)
+        lines.push(...file.split('\r\n'));
+    lines = lines.flat(Infinity);
+    const matches = [];
+    for (let line of lines) {
+        let search = line.indexOf(`// TODO`);
+        if (search != -1)        
+            matches.push(line.substring(search));
+    }
+    //console.log(lines);
+    return matches;
+    //js moment
+    
+}
+
 // TODO you can do it!

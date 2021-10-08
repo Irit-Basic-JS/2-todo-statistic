@@ -16,6 +16,7 @@ Object.assign(String.prototype, {
 class TodoRowFormatter {
     todo;
     columnsSize;
+    padding = 2;
 
     constructor(todo, columnsSize) {
         this.todo = todo;
@@ -28,7 +29,8 @@ class TodoRowFormatter {
         const date = this.formatDate();
         const content = this.formatContent();
         const file = this.formatFile();
-        return [importance, author, date, content, file].join('  |  ');
+        return [importance, author, date, content, file].join(
+            `${' '.repeat(this.padding)}|${' '.repeat(this.padding)}`);
     }
 
     formatImportance() {

@@ -1,5 +1,5 @@
-const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
-const {readLine} = require('./console');
+const { getAllFilePathsWithExtension, readFile } = require('./fileSystem');
+const { readLine } = require('./console');
 
 const files = getFiles();
 
@@ -12,9 +12,16 @@ function getFiles() {
 }
 
 function processCommand(command) {
-    switch (command) {
+    let commands = command.split(" ");
+    switch (commands[0]) {
         case 'exit':
             process.exit(0);
+            break;
+        case 'show':
+            console.log(toShow());
+            break;
+        case 'important':
+            console.log(toImportant());
             break;
         default:
             console.log('wrong command');
@@ -25,7 +32,7 @@ function processCommand(command) {
 function toShow() {
     let lines = [];
     for (let file of files)
-        lines.push(...file.split('\r\n'));
+        lines.push(...file.split('\n'));
     lines = lines.flat(Infinity);
     const matches = [];
     for (let line of lines) {
@@ -36,7 +43,16 @@ function toShow() {
     //console.log(lines);
     return matches;
     //js moment
-    
 }
 
+function toImportant(){
+    let todoLines = toShow();
+    let result = [];
+    for (let todo of todoLines){
+        if (todo.includes('!'))
+            result.push(todo);
+    }
+
+    return result;
+}
 // TODO you can do it!

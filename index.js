@@ -94,8 +94,8 @@ function tableOutput(todos) {
     }
     lengths.forEach((l, i) => lengths[i] = Math.min(l, fields[i][1]));
 
-    let line = '-'.repeat(lengths.reduce((sum, l) => l, 0) + 5 * fields.length - 1);
-    let todoToString = (todo) => todo.map((f, i) => formatString(f, lengths[i])).join('  |  ');
+    let line = '-'.repeat(lengths.reduce((sum, l) => sum + l, 0) + 5 * fields.length - 1);
+    let todoToString = (todo) => `  ${todo.map((f, i) => formatString(f, lengths[i])).join('  |  ')}  `;
     console.log(todoToString(todosTuples[0]));
     console.log(line)
     for (let todo of todosTuples.slice(1)) {

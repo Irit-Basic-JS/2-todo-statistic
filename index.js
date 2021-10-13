@@ -1,5 +1,6 @@
 const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
+const { type } = require('os');
 
 const files = getFiles();
 
@@ -8,6 +9,7 @@ findComments();
 
 console.log('Please, write your command!');
 readLine(processCommand);
+// processCommand('sort date');
 
 function getFiles() {
     const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
@@ -50,6 +52,7 @@ function findComments() {
             allComments.push(e.substring(index));
         }
     }
+
     return allComments;
 }
 
@@ -81,7 +84,6 @@ function findUserComments(username) {
         }
         if(index > -1) {
             result.push(e);
-            // console.log(index)
         }
     }
 
@@ -91,11 +93,40 @@ function findUserComments(username) {
 function sortComments(filter) {
     switch(filter) {
         case 'importance':
-            break;
+            return allComments.slice().sort((a, b) => {// !, !!! not !!!, !
+                let firstA = a.indexOf('!');
+                let lastA = a.lastIndexOf('!');
+                // let firstB = b.indexOf('!');
+                // let lastB = b.lastIndexOf('!');
+                if(firstA == lastA && firstA == -1) return 1;                
+                return firstA == lastA ? -1 : firstA - lastA - 1;
+            })
         case 'user':
-            break;
+            return allComments.slice().sort((a, b) => {
+                let nameA = a.split(' ').slice(2).join(' ');
+                nameA = nameA.split(';')[0];
+                let nameB = b.split(' ').slice(2).join(' ');
+                nameB = nameB.split(';')[0];
+
+                if(nameA == a.split(' ').slice(2).join(' ') || nameB == b.split(' ').slice(2).join(' '))
+                    return 1
+
+                return nameA.length - nameB.length;
+            })
         case 'date':
-            break;
+            return allComments.slice().sort((a, b) => {
+                a = a.split(' ').slice(2).join(' ');
+                a = a.split(';');
+                b = b.split(' ').slice(2).join(' ');
+                b = b.split(';');
+                
+                try {                    
+                    let dateA = new Date(a[1]);
+                    let dateB = new Date(b[1]);                    
+                    return dateA.getTime() > dateB.getTime() ? -1 : dateA.getTime() === dateB.getTime() ? 0 : 1;
+                } catch { }
+                
+            })
     }
 }
 

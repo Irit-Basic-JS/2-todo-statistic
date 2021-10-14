@@ -2,9 +2,9 @@ const { getAllFilePathsWithExtension, readFile } = require('./fileSystem');
 const { readLine } = require('./console');
  
 const files = getFiles();
-const lines = parseLines();
+const lines = parseLl();
 
-function parseLines() {
+function parseLl() {
     let parsedFiles = [];
     let lines = [];
     for (let i = 0; i < files.length; i++) {
@@ -43,28 +43,28 @@ function processCommand(command) {
 }
 
 function showExclamation() {
-    let importantLines = [];
-    for (let line of lines)
-        if (line.includes("!") && line.includes("// TODO"))
-            importantLines.push(line.slice(line.indexOf("// TODO")));
-    return importantLines;
+    let importantLl = [];
+    for (let l of lines)
+        if (l.includes("!") && l.includes("// TODO") && !(l.includes("\"// TODO\"")))
+            importantLl.push(l.slice(l.indexOf("// TODO")));
+    return importantLl;
 }
 
  
-function showUserNames(username) {
-    username = username.toLowerCase();
-    let namedLines = [];
-    for (let line of lines)
-        if (line.toLowerCase().includes(username) && line.includes("// TODO"))
-            namedLines.push(line.slice(line.indexOf("// TODO")).split(';')[2].replace(' ', ''));
-    return namedLines;
+function showUserNames(name) {
+    name = name.toLowerCase();
+    let namedLl = [];
+    for (let l of lines)
+        if (l.toLowerCase().includes(name) && l.includes("// TODO") && !(l.includes("\"// TODO\"")))
+            namedLl.push(l.slice(l.indexOf("// TODO")).split(';')[2].replace(' ', ''));
+    return namedLl;
 }
 
 function showTodo() {
-    let toDoLines = [];
-        for (let line of lines)
-            if (line.includes("// TODO"))
-                toDoLines.push(line.slice(line.indexOf("// TODO")));
-    return toDoLines;
+    let todoLl = [];
+        for (let l of lines)
+            if (l.includes("// TODO") && !(l.includes("\"// TODO\"")))
+                todoLl.push(l.slice(l.indexOf("// TODO")));
+    return todoLl;
 }
 // TODO you can do it!

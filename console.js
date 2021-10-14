@@ -1,5 +1,5 @@
 function readLine(callback) {
-    process.stdin.setEncoding('utf8'); // TODO pe; 2015-08-10; почему кодировка только utf?
+    process.stdin.setEncoding('utf8'); // TODO pe; 2015-08-10; почему кодировка только utf? 
 
     process.stdin.on('readable', () => {
         const chunk = process.stdin.read();

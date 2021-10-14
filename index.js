@@ -26,6 +26,17 @@ function processCommand(command) {
         case 'user':
             console.log(showNames(words[1].toLowerCase()));
             break;
+        case 'sort':
+            switch (words[1]) {
+                case 'importance':
+                    console.log(sortImportance());
+                    break;
+                case 'user':
+                    break;
+                case 'date':
+
+            }
+            break;
         default:
             console.log('wrong command');
             break;
@@ -42,32 +53,46 @@ function parseLines() {
     return lines;
 }
 
+function showTODOS() {
+    let toDoLines = [];
+    let lines = parseLines();
+    lines.forEach(line => {let index = line.indexOf("// TODO")
+        if (index !== -1 && line[index + 7] !== '"')
+            toDoLines.push(line.slice(index))});
+    return toDoLines;
+}
+
 function showNames(username) {
     let namedLines = [];
-    let lines = parseLines();
-    for (let line of lines)
-        if (line.includes("// TODO") && line.toLowerCase().includes(username))
-            namedLines.push(line.slice(line.indexOf("// TODO")).split(';')[2].replace(' ', ''));
+    let todos = showTODOS();
+    todos.forEach(line => {if (line.toLowerCase().includes(username))
+        namedLines.push(line.slice(line.indexOf("// TODO")).split(';')[2].replace(' ', ''))});
     return namedLines;
 }
 
 function showImportant() {
     let importantLines = [];
-    let lines = parseLines();
-    for (let line of lines)
-        if (line.includes("// TODO") && line.includes("!"))
-            importantLines.push(line.slice(line.indexOf("// TODO")));
+    let todos = showTODOS();
+    todos.forEach(line => {if (line.includes("!")) importantLines.push(line)});
     return importantLines;
 }
 
-function showTODOS() {
-    let toDoLines = [];
-    let lines = parseLines();
-        for (let line of lines)
-            if (line.includes("// TODO"))
-                toDoLines.push(line.slice(line.indexOf("// TODO")));
-    return toDoLines;
+function sortImportance() {
+    return showTODOS().sort((todo1, todo2) => todo2.split('!').length - todo1.split('!').length)
+}
+
+function sortUser() {
+    return showTODOS().slice().sort((a, b) => {
+        let firstName = a.split(' ').slice(2).join(' ');
+        firstName = firstName.split(';')[0];
+        let secondName = b.split(' ').slice(2).join(' ');
+        secondName = secondName.split(';')[0];
+
+        if(firstName === a.split(' ').slice(2).join(' ') || secondName === b.split(' ').slice(2).join(' '))
+            return 1
+
+        return firstName.length - secondName.length;
+    })
 }
 
 // TODO you can do it!
-

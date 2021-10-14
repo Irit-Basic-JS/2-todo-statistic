@@ -27,7 +27,6 @@ function processCommand(command) {
     switch (commands[0]) {
         case 'exit':
             process.exit(0);
-            break;
         case 'show':
             console.log(showTodo());
              break;
@@ -35,7 +34,7 @@ function processCommand(command) {
              console.log(showExclamation());
              break;
         case 'user':
-            console.log(showUserNames(words[1]));
+            console.log(showUserNames(commands[1]));
             break;
         default:
             console.log('wrong command');
@@ -53,7 +52,7 @@ function showExclamation() {
 
  
 function showUserNames(username) {
-    username.toLowerCase();
+    username = username.toLowerCase();
     let namedLines = [];
     for (let line of lines)
         if (line.toLowerCase().includes(username) && line.includes("// TODO"))

@@ -38,6 +38,9 @@ function processCommand(command) {
                     break;
             }
             break;
+        case 'date':
+            console.log(getDateNotes(commands[1]));
+            break;
         default:
             console.log('wrong command');
             break;
@@ -111,4 +114,23 @@ function compareByDate(a, b) {
     else return 0;
 }
 
+function getDateNotes(strDate) {
+    strDate = strDate.split('-').join('');
+    numDate = +(strDate + '0'.repeat(8 - strDate.length));
+
+    sortedByDate = sortByComparer(compareByDate);
+    index = sortedByDate.length;
+
+    for (let i = 0; i < sortedByDate.length; i++) {
+        let curLineSplited = sortedByDate[i].split(';')
+
+        if (curLineSplited.length < 2
+            || +curLineSplited[1].split('-').join('') < numDate) {
+            index = i;
+            break;
+        }
+    }
+
+    return sortedByDate.splice(0, index);
+}
 // TODO you can do it!

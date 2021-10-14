@@ -16,6 +16,7 @@ function getFiles() {
 
 function processCommand(command) {
     const commandArgs = command.split(' ');
+    commandArgs.forEach(x => x.trim());
     let comments = [];
     switch (commandArgs[0]) {
         case 'exit':
@@ -46,7 +47,7 @@ function processCommand(command) {
 function getSortedComments(sortingType) {
     switch (sortingType) {
         case 'importance':
-            return getComments().sort((a, b) => +b.important - +a.important);
+            return getComments().sort((a, b) => +b.text.split('!').length - +a.text.split('!').length);
         case 'user':
             return getComments().sort((a, b) => a.user.localeCompare(b.user));
         case 'date':
@@ -109,7 +110,7 @@ function formatComment(comment) {
         comment.important ? "!" : "",
         comment.user.toLowerCase().trim(),
         comment.date ? new Date(comment.date).toISOString().substring(0, 10) : "",
-        comment.text.replace('!', '').trim(),
+        comment.text.trim(),
         comment.filename
     ];
     let result = [];

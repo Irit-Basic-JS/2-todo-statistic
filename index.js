@@ -19,27 +19,27 @@ function processCommand(command) {
             process.exit(0);
             break;
         case 'show':
-            console.log(toShow());
+            console.log(doHeader(toShow()));
             break;
         case 'important':
-            console.log(important());
+            console.log(doHeader(important()));
             break;
         case 'user': 
-            console.log(user(commands[1]));
+            console.log(doHeader(user(commands[1])));
             break;
         case 'sort':
             switch (commands[1]){
                 case 'importance':
-                    console.log(sortImportance());
+                    console.log(doHeader(sortImportance()));
                     break;
                 case 'user':
                     console.log(sortUser());
                     case 'date':
-                        console.log(sortDate());
+                        console.log(doHeader(sortDate()));
                     break;
             };
         case 'date':
-            console.log(doDate(commands[1]));
+            console.log(doHeader(doDate(commands[1])));
             break;
         default:
         console.log('wrong command');
@@ -59,7 +59,7 @@ function toShow(){
  
             matches.push(line.substring(search));
     }
-    return matches;
+    return doTable(matches);
 };
 
 function important(){
@@ -83,13 +83,13 @@ function sortImportance(){
 function sortUser() {
     return toShow().sort((x, y) => {
         let name1=x.toLowerCase(), name2=y.toLowerCase()
-        if (x.split(";").length !== 1) {
+        if (x.split("|").length !== 1) {
             if (name1 < name2)
                 return -1
             if (name1 > name2)
                 return 1
             return 0;
-        } else if (y.split(";").length === 1) {
+        } else if (y.split("|").length === 1) {
             return -1;
         } else {
             return 0;
@@ -99,15 +99,15 @@ function sortUser() {
 
 function sortDate() {
     return toShow().sort((x, y) => {
-        let line1 = x.split('; '), line2 = y.split('; ');
-        if (line1.length === 3) {
-            if (line1[1] > line2[1])
+        let line1 = x.split('|'), line2 = y.split('|');
+        if (line1[2].includes('-')&& line2[2].includes('-')) {
+            if (line1[2] > line2[2])
                 return -1;
-            if (line1[1] < line2[1])
+            if (line1[2] < line2[2])
                 return 1;
             return 0;
         } 
-        else if (line2.length === 1) {
+        else if (line2[2].indexOf('-')==-1) {
             return -1;
         } 
         else {
@@ -119,10 +119,10 @@ function sortDate() {
 function doDate(date1){
     let res =[];
     let inputDate=date1.split('-');
-    listDates= toShow().filter(line=> line.split('; ').length>=2);
+    listDates= toShow().filter(line=> line.split('|').length>=2);
     for(let line of listDates){
         let flag = true;
-        lineDate= line.split('; ')[1].split('-');
+        lineDate= line.split(' | ')[2].split('-');
         for(let i=0;i<inputDate.length;i++){
             if(inputDate[i]>lineDate[i]){
                 flag=false;
@@ -134,6 +134,41 @@ function doDate(date1){
     }
     return res;
 };
+
+function doTable(lines){
+    let res=[];
+    for (let line of lines){
+        let strArr =[];
+        let lineSplit = line.split(';');
+        if(line.includes('!'))
+            strArr.push('!');
+        else strArr.push(' ');
+        if (lineSplit.length!=3){
+            let a=' ';
+            strArr.push(a.padEnd(10,' '));
+            strArr.push(a.padEnd(11,' '));
+            strArr.push(lineSplit[0].split('TODO')[1].substring(0,50).padEnd(50,' '))
+        }
+        if (lineSplit.length==3){
+       
+        strArr.push(lineSplit[0].split('TODO')[1].substring(0,10).padEnd(10,' '));
+        strArr.push(lineSplit[1].padEnd(10,' '));
+        strArr.push(lineSplit[2].substring(0,50).padEnd(50,' '));
+        }
+
+        res.push(strArr.join(' |'));
+    }
+    return res;
+}
+
+function doHeader(lines){
+    let res = ['!','user'.padEnd(10,' '),' date '.padEnd(11,' '),'comment'.padEnd(50,' ')].join(' |');
+    let line = ''.padEnd(res.length,'-');
+    lines.unshift(line);
+    lines.push(line);
+    lines.unshift(res);
+    return lines;
+}
 
 // TODO you can do it!
  

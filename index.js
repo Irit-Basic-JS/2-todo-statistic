@@ -1,22 +1,115 @@
 const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
 
-const files = getFiles();
-
 console.log('Please, write your command!');
 readLine(processCommand);
 
 function getFiles() {
     const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
-    return filePaths.map(path => readFile(path));
+    let result = {};
+
+    filePaths.forEach(path => {
+        result[path] = readFile(path)
+    });
+    return result;
 }
 
-function showTODOs(data, important = false, user = undefined) {
+function showTODOs(data, filterFunc) {
+    let content = [];
     data.forEach(todo => {
-        if ((user == undefined || (todo.user != undefined && (user.toLowerCase() == todo.user.toLowerCase())))
-            && (!important || todo.importance))
-            console.log(todo.raw);
+        if (filterFunc(todo))
+            content.push(getTODOdata(todo));
     });
+
+    let headers = ["!", "user", "date", "comment", "path"];
+    printTable(headers, content);
+}
+
+function getTODOdata(todo) {
+    let raw = Object.values(todo);
+    raw.forEach((e, index) => {
+        if (e === undefined)
+            raw[index] = "";
+        else {
+            if (index == 2)
+                raw[index] = (new Date(raw[index])).toISOString().split('T')[0];
+            raw[index] = String(raw[index])
+        }
+    });
+
+    return raw;
+}
+
+function printTable(headers, data) {
+
+    let maxWidthArr = getMaxWidthArr(data.concat([[...headers]]));
+    console.log(
+        getHeaders(headers, maxWidthArr)
+        + "\n"
+        + getData(data, maxWidthArr)
+    );
+
+    function getHeaders(headers, maxWidthArr) {
+        let row = getRow(headers, maxWidthArr);
+        return row + '\n'
+        + `${'-'.repeat(row.length)}`;
+    }
+
+    function getMaxWidthArr(allData, limit = 30) {
+        let maxWidthArr = Array(allData[0].length).fill(0);
+
+        allData.forEach(row => {
+            for (let i = 0; i < row.length; ++i) {
+                maxWidthArr[i] = Math.max(maxWidthArr[i], row[i].length);
+                maxWidthArr[i] = Math.min(maxWidthArr[i], limit);
+            }
+        });
+
+        return maxWidthArr;
+    }
+
+    function getData(table, maxWidthArr) {
+        let strings = [];
+
+        table.forEach(row => {
+            strings.push(getRow(row, maxWidthArr));
+            strings.push(getRow(Array(row.length).fill(""), maxWidthArr));
+        });
+
+        return strings.join("\n")
+    }
+
+    function getRow(textArr, maxWidthArr) {
+        let cells = [];
+        let limit = Math.max(...maxWidthArr);
+        textArr.forEach((text, index) => {
+            let cell = getCell(text.substring(0, limit), maxWidthArr[index])
+            cells.push(cell);
+        });
+
+        let result = cells.join("|");
+
+        const overlength = (e) => e.length > limit;
+
+        if (textArr.some(overlength)) {
+                result += "\n";
+                let secondLevelText = [];
+                textArr.forEach(text => {
+                    if (overlength(text))
+                        secondLevelText.push(text.substring(limit, text.length));
+                    else
+                        secondLevelText.push("")
+                });
+
+                result += getRow(secondLevelText, maxWidthArr);
+            }
+        
+        return result
+    }
+
+    function getCell(text, width) {
+        return `  ${text}${' '.repeat(width - text.length)}  `;
+    }
 }
 
 function sortTODOs(data, param)
@@ -38,7 +131,7 @@ function sortTODOs(data, param)
     }
     if (sortFunc != undefined) {
         data.sort(sortFunc);
-        showTODOs(data);    
+        showTODOs(data, (e) => true);    
     }
 }
 
@@ -55,19 +148,33 @@ function processCommand(input) {
         case 'exit':
             process.exit(0);
             break;
+
         case 'show':
-            showTODOs(preProcessData);
+            showTODOs(preProcessData, (todo) => true);
             break;
+            
         case 'important':
-            showTODOs(preProcessData, true)
+            showTODOs(preProcessData, (todo) => todo.importance > 0)
             break;
+
         case 'user':
             if (params.length == 1) {
-                showTODOs(preProcessData, true, params[0])
+                showTODOs(preProcessData, (todo) => 
+                todo.user != undefined && (params[0].toLowerCase() == todo.user.toLowerCase()))
             }
             else
                 console.log('wrong params');
             break;
+
+        case 'date':
+            if (params.length == 1) {
+                let date = Date.parse(params[0]);
+                showTODOs(preProcessData, (todo) => todo.date >= date)
+            }
+            else
+                console.log('wrong params');
+            break;
+
         case 'sort':
             if (params.length == 1) {
                 sortTODOs(preProcessData, params[0]);
@@ -75,6 +182,7 @@ function processCommand(input) {
             else
                 console.log('wrong params');
             break;
+
         default:
             console.log('wrong command');
             break;
@@ -116,7 +224,7 @@ function getTODOs(text) {
 }
 
 function parseTODO(todo) {
-    let result = {raw: todo, user: undefined, date: undefined};
+    let result = {importance: 0, user: undefined, date: undefined, message: undefined};
 
     let split = todo.split(';');
 
@@ -135,15 +243,18 @@ function parseTODO(todo) {
     }
 
     result.importance = (todo.match(/!/g) || []).length;
+    result.message = split[split.length - 1].trim();
     return result;
 }
 
 function preProcessTODOS(texts)
 {
     let result = [];
-    texts.forEach(text => {
-        getTODOs(text).forEach(todo => {
-            result.push(parseTODO(todo));
+    Object.keys(texts).forEach(key => {
+        getTODOs(texts[key]).forEach(todo => {
+            let parsed = parseTODO(todo);
+            parsed.path = key;
+            result.push(parsed);
         });
     });
 
@@ -151,4 +262,4 @@ function preProcessTODOS(texts)
 }
 
 //console.log(preProcessTODOS(getFiles()));
-//processCommand("sort importance")
+//processCommand("show")

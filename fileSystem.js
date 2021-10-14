@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 // TODO PE; 2018-08-20; переименовать?
 function getAllFilePathsWithExtension(directoryPath, extension, filePaths) {
@@ -20,9 +21,15 @@ function readFile(filePath) {
     return fs.readFileSync(filePath, 'utf8'); // TODO Veronika; 2018-08-16; сделать кодировку настраиваемой
 }
 
+
+function getFileName(filePath) {
+    return path.basename(filePath);
+}
+
 // TODO Digi; 2018-09-21; Добавить функцию getFileName, которая по пути файла будет возвращать его имя. Воспользоваться модулем path из Node.js
 
 module.exports = {
     getAllFilePathsWithExtension,
     readFile,
+    getFileName
 };

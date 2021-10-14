@@ -37,10 +37,10 @@ function processCommand(command) {
             comments = getComments().filter(x => x.date > Date.parse(commandArgs[1]));
             break;
         default:
-            console.log('wrong command');
             break;
     }
     if (comments) showComments(comments);
+    else console.log('wrong command');
 }
 
 function getSortedComments(sortingType) {
@@ -52,7 +52,7 @@ function getSortedComments(sortingType) {
         case 'date':
             return getComments().sort((a, b) => +b.date - +a.date);
         default:
-            return 'wrong command';
+            return;
     }
 }
 

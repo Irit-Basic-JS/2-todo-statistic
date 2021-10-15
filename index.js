@@ -32,9 +32,11 @@ function processCommand(command) {
                     console.log(sortImportance());
                     break;
                 case 'user':
+                    console.log(sortByUser());
                     break;
                 case 'date':
-
+                    console.log(sortByDate());
+                    break;
             }
             break;
         default:
@@ -81,18 +83,28 @@ function sortImportance() {
     return showTODOS().sort((todo1, todo2) => todo2.split('!').length - todo1.split('!').length)
 }
 
-function sortUser() {
-    return showTODOS().slice().sort((a, b) => {
-        let firstName = a.split(' ').slice(2).join(' ');
-        firstName = firstName.split(';')[0];
-        let secondName = b.split(' ').slice(2).join(' ');
-        secondName = secondName.split(';')[0];
+function sortByUser() {
+    return showTODOS().slice().sort((todo1, todo2) => {
+        let firstName = todo1.split(' ').slice(2).join(' ').split(';')[0];
+        let secondName = todo2.split(' ').slice(2).join(' ').split(';')[0];
 
-        if(firstName === a.split(' ').slice(2).join(' ') || secondName === b.split(' ').slice(2).join(' '))
+        if(firstName === todo1.split(' ').slice(2).join(' ') || secondName === todo2.split(' ').slice(2).join(' '))
             return 1
 
-        return firstName.length - secondName.length;
+        return secondName.length - firstName.length;
     })
+}
+
+function sortByDate(){
+    return showTODOS().sort((todo1, todo2) => {
+        todo1 = todo1.split(';');
+        todo2 = todo2.split(';');
+        if (todo1.length > 2 && todo2.length > 2) {
+            todo1 = todo1[1].split(' ').join('').split('-').join('');
+            todo2 = todo2[1].split(' ').join('').split('-').join('');
+        }
+        return todo2 - todo1;
+    });
 }
 
 // TODO you can do it!

@@ -1,7 +1,17 @@
 const { getAllFilePathsWithExtension, readFile } = require('./fileSystem');
 const { readLine } = require('./console');
+const { fileURLToPath } = require('url');
 
 const files = getFiles();
+
+const table = [];
+const firstColWidth = 1;
+const secondColWidth = 10;
+const thirdColWidth = 10;
+const fourthColWidth = 50;
+
+let maxUserColWidth = 0;
+let maxComColWidth = 0;
 const todoMark = `// TODO `;
 
 console.log('Please, write your command!');
@@ -19,19 +29,19 @@ function processCommand(command) {
             process.exit(0);
             break;
         case 'show':
-            console.log(toShow());
+            console.log(printTable(toShow()));
             break;
         case 'important':
-            console.log(toImportant());
+            console.log(printTable(toImportant()));
             break;
         case 'user':
-            console.log(toUsername(commands));
+            console.log(printTable(toUsername(commands)));
             break;
         case 'sort':
-            console.log(toSort(commands));
+            console.log(printTable(toSort(commands)));
             break;
         case 'date':
-            console.log(toDate(commands));
+            console.log(printTable(toDate(commands)));
             break;
         default:
             console.log('wrong command');
@@ -160,5 +170,49 @@ function getSeparatedTodo(todo){
     let separatedTodo = todo.split(';');
     separatedTodo[0] = separatedTodo[0].replace(todoMark, '');
     return separatedTodo;
+}
+
+function printTable(comments) {
+    for (let comment of comments) {
+        const row = [];
+        if (comment.indexOf('!') !== -1) row.push('!');
+        else row.push(' ');
+        const firstIndex = comment.indexOf(';');
+        const lastIndex = comment.lastIndexOf(';');
+        if (firstIndex !== -1) {
+            const user = comment.substring(0, firstIndex).split(' ').slice(2).join(' ');
+            if (user.length > secondColWidth) {
+                row.push(user.substr(0, secondColWidth - 3).padEnd(secondColWidth, '.'));
+                maxUserColWidth = secondColWidth;
+            } else {
+                if (user.length > maxUserColWidth) maxUserColWidth = user.length;
+                row.push(user.padEnd(secondColWidth));
+            }
+            row.push(comment.substring(firstIndex + 1, lastIndex).trimStart());
+        } else row.push(''.padEnd(secondColWidth), ''.padEnd(thirdColWidth));
+        const textComment = firstIndex !== -1 
+            ? comment.slice(lastIndex + 1).trimStart() 
+            : comment.split(' ').slice(2).join(' ');
+        if (textComment.length > fourthColWidth) {
+            row.push(textComment.substr(0, fourthColWidth - 3).padEnd(fourthColWidth, '.'));
+            maxComColWidth = fourthColWidth;
+        } else {
+            if (textComment.length > maxComColWidth) maxComColWidth = textComment.length;
+            row.push(textComment.padEnd(fourthColWidth));
+        }
+        table.push(row);
+    }
+    setWidthColumns();
+    console.log(table.map(com => com.join('  |  ')).join('\n'));
+}
+
+function setWidthColumns() {
+    if (maxComColWidth < secondColWidth || maxUserColWidth < fourthColWidth)
+        for (let row of table) {
+            if (row[1].length > maxUserColWidth) 
+                row[1] = row[1].trimEnd().padEnd(maxUserColWidth);
+            if (row[3].length > maxComColWidth)
+                row[3] = row[3].trimEnd().padEnd(maxComColWidth);
+        }
 }
 // TODO you can do it!

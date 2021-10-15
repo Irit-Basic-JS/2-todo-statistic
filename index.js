@@ -59,13 +59,8 @@ function getImportantNotes() {
 }
 
 function getUserComments(username) {
-    let allNotes = toShow();
-    let result = [];
-    for (let line of allNotes)
-        if (line.split(';')[0].slice(8).toLowerCase() === username.toLowerCase())
-            result.push(line);
-
-    return result;
+    return toShow()
+        .filter(line => line.split(';')[0].slice(8).toLowerCase() === username.toLowerCase());
 }
 
 function sortByComparer(comparer) {
@@ -111,8 +106,7 @@ function compareByDate(a, b) {
 }
 
 function getDateNotes(strDate) {
-    strDate = strDate.split('-').join('');
-    numDate = +strDate.padEnd(8, '0');
+    numDate = +strDate.split('-').join('').padEnd(8, '0');
 
     sortedByDate = sortByComparer(compareByDate);
     index = sortedByDate.length;
@@ -133,16 +127,15 @@ function getDateNotes(strDate) {
 function printTable(data) {
     let headers = ["!", "user", "date", "comment", "file name"];
     let spacing = [1, 10, 10, 50, 20];
-    let newSpacing = [1, 0, 0, 0, 0];
-
+    let newSpacing = [1, 4, 4, 7, 9];
     let formatedData = [];
-
     let curIndex = 0;
-    for (let line of data) {
-        formatedData.push([]);
-        formatedData[curIndex].push(line.includes('!') ? '!' : ' ');
 
+    for (let line of data) {
         let splitedLine = line.split(';');
+        formatedData.push([]);
+
+        formatedData[curIndex].push(line.includes('!') ? '!' : ' ');
         formatedData[curIndex].push(splitedLine.length > 1 ? splitedLine[0].slice(8) : ' ');
         formatedData[curIndex].push(splitedLine.length > 1 ? splitedLine[1].trim() : ' ');
         formatedData[curIndex].push(splitedLine.length > 1 ? splitedLine[2].trim() : line.slice(8));
@@ -166,20 +159,20 @@ function printTable(data) {
 
     let separator = '-'.repeat(spacing
         .toString().split(',')
-        .map(el => parseFloat(el))
-        .filter(el => !Number.isNaN(el))
+        .map(e => parseFloat(e))
+        .filter(e => !Number.isNaN(e))
         .reduce((acc, cur) => acc + cur) + 20);
 
-    console.log(printSeparatedLine(headers, spacing));
+    console.log(GetSeparatedLine(headers, spacing));
     console.log(separator);
 
     for (let line of formatedData)
-        console.log(printSeparatedLine(line, spacing));
+        console.log(GetSeparatedLine(line, spacing));
 
     console.log(separator);
 }
 
-function printSeparatedLine(arr, spacing) {
+function GetSeparatedLine(arr, spacing) {
     let index = 0;
     return arr.map(e => e.padEnd(spacing[index++], ' ')).join('  |  ');
 }

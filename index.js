@@ -1,15 +1,12 @@
 const { getAllFilePathsWithExtension, readFile } = require('./fileSystem');
 const { readLine } = require('./console');
+const path = require('path');
 
-const files = getFiles();
+const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
+const files = filePaths.map(path => readFile(path));
 
 console.log('Please, write your command!');
 readLine(processCommand);
-
-function getFiles() {
-    const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
-    return filePaths.map(path => readFile(path));
-}
 
 function processCommand(command) {
     let commands = command.split(" ");
@@ -17,29 +14,29 @@ function processCommand(command) {
         case 'exit':
             process.exit(0);
         case 'show':
-            console.log(toShow());
+            printTable(toShow());
             break;
         case 'important':
-            console.log(getImportantNotes());
+            printTable(getImportantNotes());
             break;
         case 'user':
-            console.log(getUserComments(commands[1]));
+            printTable(getUserComments(commands[1]));
             break;
         case 'sort':
             switch (commands[1]) {
                 case 'importance':
-                    console.log(sortByComparer(compareByImportance));
+                    printTable(sortByComparer(compareByImportance));
                     break;
                 case 'user':
-                    console.log(sortByComparer(compareByUser));
+                    printTable(sortByComparer(compareByUser));
                     break;
                 case 'date':
-                    console.log(sortByComparer(compareByDate));
+                    printTable(sortByComparer(compareByDate));
                     break;
             }
             break;
         case 'date':
-            console.log(getDateNotes(commands[1]));
+            printTable(getDateNotes(commands[1]));
             break;
         default:
             console.log('wrong command');
@@ -64,11 +61,10 @@ function getImportantNotes() {
 function getUserComments(username) {
     let allNotes = toShow();
     let result = [];
-    for (let str of allNotes) {
-        let arr = str.split(';');
-        if (arr[0].slice(8).toLowerCase() === username.toLowerCase())
-            result.push(arr[2]);
-    }
+    for (let line of allNotes)
+        if (line.split(';')[0].slice(8).toLowerCase() === username.toLowerCase())
+            result.push(line);
+
     return result;
 }
 
@@ -116,7 +112,7 @@ function compareByDate(a, b) {
 
 function getDateNotes(strDate) {
     strDate = strDate.split('-').join('');
-    numDate = +(strDate + '0'.repeat(8 - strDate.length));
+    numDate = +strDate.padEnd(8, '0');
 
     sortedByDate = sortByComparer(compareByDate);
     index = sortedByDate.length;
@@ -133,4 +129,59 @@ function getDateNotes(strDate) {
 
     return sortedByDate.splice(0, index);
 }
+
+function printTable(data) {
+    let headers = ["!", "user", "date", "comment", "file name"];
+    let spacing = [1, 10, 10, 50, 20];
+    let newSpacing = [1, 0, 0, 0, 0];
+
+    let formatedData = [];
+
+    let curIndex = 0;
+    for (let line of data) {
+        formatedData.push([]);
+        formatedData[curIndex].push(line.includes('!') ? '!' : ' ');
+
+        let splitedLine = line.split(';');
+        formatedData[curIndex].push(splitedLine.length > 1 ? splitedLine[0].slice(8) : ' ');
+        formatedData[curIndex].push(splitedLine.length > 1 ? splitedLine[1].trim() : ' ');
+        formatedData[curIndex].push(splitedLine.length > 1 ? splitedLine[2].trim() : line.slice(8));
+
+        for (let file of files)
+            if (file.includes(line))
+                formatedData[curIndex].push(path.basename(filePaths[files.indexOf(file)], '.js'));
+
+        for (let i = 1; i < spacing.length; i++)
+            if (formatedData[curIndex][i].length > spacing[i]) {
+                formatedData[curIndex][i] = formatedData[curIndex][i].substr(0, spacing[i] - 1) + '…';
+                newSpacing[i] = spacing[i];
+            }
+            else if (formatedData[curIndex][i].length > newSpacing[i])
+                newSpacing[i] = formatedData[curIndex][i].length;
+
+        curIndex++;
+    }
+
+    spacing = newSpacing;
+
+    let separator = '-'.repeat(spacing
+        .toString().split(',')
+        .map(el => parseFloat(el))
+        .filter(el => !Number.isNaN(el))
+        .reduce((acc, cur) => acc + cur) + 20);
+
+    console.log(printSeparatedLine(headers, spacing));
+    console.log(separator);
+
+    for (let line of formatedData)
+        console.log(printSeparatedLine(line, spacing));
+
+    console.log(separator);
+}
+
+function printSeparatedLine(arr, spacing) {
+    let index = 0;
+    return arr.map(e => e.padEnd(spacing[index++], ' ')).join('  |  ');
+}
+
 // TODO you can do it!

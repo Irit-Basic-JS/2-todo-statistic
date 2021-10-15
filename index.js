@@ -1,10 +1,8 @@
 const {getAllFilePathsWithExtension, readFile} = require('./fileSystem');
 const {readLine} = require('./console');
-
 let get = getFiles()
 const files = get[0];
 const inFile = get[1];
-
 let allToDo = getTODOs()[0];
 let allFileToDo = getTODOs()[1];
 console.log('Please, write your command!');
@@ -16,19 +14,18 @@ function getFiles() {
     return [filePaths.map(path => {
         inFile.push(path)
         return readFile(path);
-    }), inFile]
-
+    }), inFile];
 }
 
 function getTODOs(){
-    let inFiles = []
+    let inFiles = [];
     let allToDo = [];
     for (let file of files){
         let f = file.split('\r');
         for (let str of f){
             if (str.includes(('// todo ').toUpperCase())){
                 allToDo.push(str.slice(str.indexOf(('// todo ').toUpperCase())));
-                inFiles.push(inFile.filter(path => readFile(path).includes(allToDo[allToDo.length-1]))[0].split('/')[1])
+                inFiles.push(inFile.filter(path => readFile(path).includes(allToDo[allToDo.length-1]))[0].split('/')[1]);
             }
         }
     }
@@ -130,8 +127,8 @@ function getDate(day){
 }
 
 function printTable(data){
-    let length = getLength(data)
-    let title = getTitle(length)
+    let length = getLength(data);
+    let title = getTitle(length);
     console.log(title);
     console.log('-'.repeat(title.length))
     for (let item of data){
@@ -148,7 +145,7 @@ function printTable(data){
                                                     : item.comment + 
                                                     ' '.repeat(length[3] - item.comment.length)}  |  ${allFileToDo[allToDo.indexOf(item)] + ' '.repeat(length[4] - allFileToDo[allToDo.indexOf(item)].length)}  |`);
     }
-    console.log('-'.repeat(title.length))
+    console.log('-'.repeat(title.length));
 }
 
 function getTitle(length){
@@ -157,7 +154,6 @@ function getTitle(length){
     let comment = ' '.repeat((length[3] - 7) / 2) + 'comment' + ' '.repeat((length[3] - 7) / 2 + 1);
     let file = ' '.repeat((length[4] - 4) / 2) + 'file' + ' '.repeat((length[4] - 4) / 2 + 1);
     return `   |  ${user}  |  ${date}  |  ${comment}  |  ${file}  |`
-
 }
 
 function getLength(data){
@@ -170,6 +166,5 @@ function getLength(data){
     length.push(commentsLength > 50 ? 50 : commentsLength);
     length.push(filesLength);
     return length;
-
 }
 // TODO you can do it!
